@@ -1,5 +1,5 @@
-> [!WARNING]
-> I implemented this for an interview once ages ago, but now it's unmaintained.
+<!-- > [!WARNING]
+> I implemented this for an interview once ages ago, but now it's unmaintained. -->
 
 # todo-backend-express-knex
 
@@ -8,6 +8,11 @@ This is an implementation of [Todo-Backend](http://todobackend.com/) using Node 
 A [production instance](https://todo-backend-express-knex.herokuapp.com/) is running on Heroku.
 
 Bonus features include a simple frontend boostrapped with create-react-app and the todo-backend specification tests transcribed for Jest--a quick full-stack starter pack.
+
+## Prerequisites
+
+1. Node version 12.16.3
+2. Run `npm i -g yarn`
 
 ## Installation
 
