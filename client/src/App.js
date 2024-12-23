@@ -41,9 +41,9 @@ class App extends Component {
     // We can only proxy non-root gets.
     let response;
     if (process.env.NODE_ENV === "development" && method === "GET" && id === '') {
-      response = await fetch('http://localhost:5000/', request);
+      response = await fetch('http://localhost:5000/todos/', request);
     } else {
-      response = await fetch(`/${id}`, request);
+      response = await fetch(`/todos/${id}`, request);
     }
 
     const contentType = response.headers.get('content-type');

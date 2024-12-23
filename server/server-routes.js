@@ -19,6 +19,11 @@ async function getAllTodos(req, res) {
   return res.send(allEntries.map( _.curry(createToDo)(req) ));
 }
 
+async function getAllTodosWithProject(req, res) {
+  const allEntries = await todos.allWithProjectId(req.params.projectId);
+  return res.send(allEntries.map( _.curry(createToDo)(req) ));
+}
+
 async function getTodo(req, res) {
   const todo = await todos.get(req.params.id);
   return res.send(todo);
@@ -27,6 +32,24 @@ async function getTodo(req, res) {
 async function postTodo(req, res) {
   const created = await todos.create(req.body.title, req.body.order);
   return res.send(createToDo(req, created));
+}
+
+async function assignUser(req, res) {
+  const todoId = req.body.todoId;
+  const userId = req.body.userId;
+
+  const todo = await todos.get(req.params.id);
+
+  if(!todo) {
+    return res.status(400).send('Todo not found');
+  }
+  
+  if (!userId) {
+    return res.status(400).send('User ID is required');
+  }
+
+  const updated = await todos.assignUser(todoId, userId);
+  return res.send(createToDo(req, updated));
 }
 
 async function patchTodo(req, res) {
@@ -59,6 +82,8 @@ function addErrorReporting(func, message) {
 
 const toExport = {
     getAllTodos: { method: getAllTodos, errorMessage: "Could not fetch all todos" },
+    getAllTodosWithProject: { method: getAllTodosWithProject, errorMessage: "Could not fetch all todos of this project" },
+    assignUser: { method: assignUser, errorMessage: "Could not assign this user" },
     getTodo: { method: getTodo, errorMessage: "Could not fetch todo" },
     postTodo: { method: postTodo, errorMessage: "Could not post todo" },
     patchTodo: { method: patchTodo, errorMessage: "Could not patch todo" },
