@@ -2,37 +2,110 @@ const knex = require("./connection.js");
 
 const usersQueries = {
     async create(name, email, password) {
-        const results = await knex('users')
-            .insert({ name, email, password })
-            .returning('*');
-        return results[0];
+        try {
+            const results = await knex('users')
+                .insert({ name, email, password })
+                .returning('*');
+            return {
+                type: 'SUCCESS',
+                payload: results[0]
+            };
+        } catch (error) {
+            console.error('Error creating user:', error);
+            return {
+                type: 'ERROR',
+                payload: error
+            };
+        }
+    },
+
+    async all() {
+        try {
+            const results = await knex('users');
+            return {
+                type: 'SUCCESS',
+                payload: results
+            };
+        } catch (error) {
+            console.error('Error fetching all users:', error);
+            return {
+                type: 'ERROR',
+                payload: error
+            };
+        }
     },
 
     async getByEmail(email) {
-        const results = await knex('users')
-            .where({ email })
-            .select('*');
-        return results[0];
+        try {
+            const results = await knex('users')
+                .where({ email })
+                .select('*');
+            return {
+                type: 'SUCCESS',
+                payload: results[0]
+            };
+        } catch (error) {
+            console.error('Error fetching user by email:', error);
+            return {
+                type: 'ERROR',
+                payload: error
+            };
+        }
     },
 
     async get(id) {
-        const results = await knex('users')
-            .where({ id })
-            .select('*');
-        return results[0];
+        try {
+            const results = await knex('users')
+                .where({ id })
+                .select('*');
+            return {
+                type: 'SUCCESS',
+                payload: results[0]
+            };
+        } catch (error) {
+            console.error('Error fetching user:', error);
+            return {
+                type: 'ERROR',
+                payload: error
+            };
+        }
     },
 
     async getOrganizations(userId) {
-        return knex('organization_users')
-            .where({ user_id: userId })
-            .join('organizations', 'organization_users.organization_id', 'organizations.id')
-            .select('organizations.*');
+        try {
+            const results = await knex('organization_users')
+                .where({ user_id: userId })
+                .join('organizations', 'organization_users.organization_id', 'organizations.id')
+                .select('organizations.*');
+            return {
+                type: 'SUCCESS',
+                payload: results
+            };
+        } catch (error) {
+            console.error('Error fetching user organizations:', error);
+            return {
+                type: 'ERROR',
+                payload: error
+            };
+        }
     },
 
     async getAssignedTodos(userId) {
-        return knex('todos')
-            .where({ assigned_user_id: userId })
-            .select('*');
+        try {
+            const results = await knex('todos')
+                .where({ assigned_user_id: userId })
+                .select('*');
+            return {
+                type: 'SUCCESS',
+                payload: results
+            };
+        } catch (error) {
+            console.error('Error fetching assigned todos:', error);
+            return {
+                type: 'ERROR',
+                payload: error
+            };
+        }
     }
 };
 

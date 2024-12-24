@@ -17,24 +17,26 @@ app.patch('/todos/:id', routes.patchTodo);
 app.delete('/todos', routes.deleteAllTodos);
 app.delete('/todos/:id', routes.deleteTodo);
 
-app.get('/users', users.getAllUsers);
-app.get('/users/:id', users.getUser);
-app.get('/users/email/:email', users.getUserByEmail);
+app.post('/login', users.loginUser);
+
+app.get('/users', users.verifyAccessToken, users.getAllUsers);
+app.get('/users/:id', users.verifyAccessToken, users.getUser);
+app.get('/users/email/:email', users.verifyAccessToken, users.getUserByEmail);
 app.post('/users', users.createNewUser);
-app.get('/users/:id/organizations', users.getUserOrganizations);
-app.get('/users/:id/todos', users.getUserAssignedTodos);
+app.get('/users/:id/organizations', users.verifyAccessToken, users.getUserOrganizations);
+app.get('/users/:id/todos', users.verifyAccessToken, users.getUserAssignedTodos);
 
-app.get('/organizations', organizations.getAllOrganizations);
-app.get('/organizations/:id', organizations.getOrganization);
-app.post('/organizations', organizations.createNewOrganization);
-app.get('/organizations/:id/users', organizations.getOrganizationUsers);
-app.post('/organizations/:id/users', organizations.addUserToOrganization);
-app.delete('/organizations/:id/users', organizations.removeUserFromOrganization);
+app.get('/organizations', users.verifyAccessToken, organizations.getAllOrganizations);
+app.get('/organizations/:id', users.verifyAccessToken, organizations.getOrganization);
+app.post('/organizations', users.verifyAccessToken, organizations.createNewOrganization);
+app.get('/organizations/:id/users', users.verifyAccessToken, organizations.getOrganizationUsers);
+app.post('/organizations/:id/users', users.verifyAccessToken, organizations.addUserToOrganization);
+app.delete('/organizations/:id/users', users.verifyAccessToken, organizations.removeUserFromOrganization);
 
-app.get('/projects', projects.getAllProjects);
-app.get('/projects/:id', projects.getProject);
-app.post('/projects', projects.createNewProject);
-app.get('/projects/:id/todos', projects.getProjectTodos);
+app.get('/projects', users.verifyAccessToken, projects.getAllProjects);
+app.get('/projects/:id', users.verifyAccessToken, projects.getProject);
+app.post('/projects', users.verifyAccessToken, projects.createNewProject);
+app.get('/projects/:id/todos', users.verifyAccessToken, projects.getProjectTodos);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => console.log(`Listening on port ${port}`));

@@ -15,32 +15,45 @@ function createToDo(req, data) {
 }
 
 async function getAllTodos(req, res) {
-  const allEntries = await todos.all();
-  return res.send(allEntries.map( _.curry(createToDo)(req) ));
+  const result = await todos.all();
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Error fetching all todos');
+  }
+  return res.send(result.payload.map(_.curry(createToDo)(req)));
 }
 
 async function getAllTodosWithProject(req, res) {
-  const allEntries = await todos.allWithProjectId(req.params.projectId);
-  return res.send(allEntries.map( _.curry(createToDo)(req) ));
+  const result = await todos.allWithProjectId(req.params.projectId);
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Error fetching todos with project ID');
+  }
+  return res.send(result.payload.map(_.curry(createToDo)(req)));
 }
 
 async function getTodo(req, res) {
-  const todo = await todos.get(req.params.id);
-  return res.send(todo);
+  const result = await todos.get(req.params.id);
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Error fetching todo');
+  }
+  return res.send(result.payload);
 }
 
 async function postTodo(req, res) {
-  const created = await todos.create(req.body.title, req.body.order);
-  return res.send(createToDo(req, created));
+  const result = await todos.create(req.body.title, req.body.order);
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Error creating todo');
+  }
+  return res.send(createToDo(req, result.payload));
 }
 
 async function assignUser(req, res) {
-  const todoId = req.body.todoId;
-  const userId = req.body.userId;
+  const {todoId, userId} = req.body;
 
   const todo = await todos.get(req.params.id);
-
-  if(!todo) {
+  if (todo.type === 'ERROR') {
+    return res.status(500).send('Error fetching todo');
+  }
+  if (!todo.payload) {
     return res.status(400).send('Todo not found');
   }
   
@@ -48,23 +61,35 @@ async function assignUser(req, res) {
     return res.status(400).send('User ID is required');
   }
 
-  const updated = await todos.assignUser(todoId, userId);
-  return res.send(createToDo(req, updated));
+  const result = await todos.assignUser(todoId, userId);
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Error assigning user to todo');
+  }
+  return res.send(createToDo(req, result.payload));
 }
 
 async function patchTodo(req, res) {
-  const patched = await todos.update(req.params.id, req.body);
-  return res.send(createToDo(req, patched));
+  const result = await todos.update(req.params.id, req.body);
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Error updating todo');
+  }
+  return res.send(createToDo(req, result.payload));
 }
 
 async function deleteAllTodos(req, res) {
-  const deletedEntries = await todos.clear();
-  return res.send(deletedEntries.map( _.curry(createToDo)(req) ));
+  const result = await todos.clear();
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Error clearing todos');
+  }
+  return res.send(result.payload.map(_.curry(createToDo)(req)));
 }
 
 async function deleteTodo(req, res) {
-  const deleted = await todos.delete(req.params.id);
-  return res.send(createToDo(req, deleted));
+  const result = await todos.delete(req.params.id);
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Error deleting todo');
+  }
+  return res.send(createToDo(req, result.payload));
 }
 
 function addErrorReporting(func, message) {
@@ -73,9 +98,7 @@ function addErrorReporting(func, message) {
             return await func(req, res);
         } catch(err) {
             console.log(`${message} caused by: ${err}`);
-
-            // Not always 500, but for simplicity's sake.
-            res.status(500).send(`Opps! ${message}.`);
+            res.status(500).send(`Oops! ${message}.`);
         } 
     }
 }

@@ -1,4 +1,5 @@
 const organizations = require('../database/organization-queries.js');
+const users = require('../database/user-queries.js');
 
 async function getAllOrganizations(req, res) {
   const allOrganizations = await organizations.all();
@@ -6,6 +7,17 @@ async function getAllOrganizations(req, res) {
 }
 
 async function getOrganization(req, res) {
+  const { userId } = req;
+
+  const user = await users.get(userId);
+  if (!user) {
+    return res.status(400).send('User not found');
+  }
+
+  const isUserInOrganization = await organizations.checkUser(req.params.id, userId);
+  if (!isUserInOrganization) {
+    return res.status(403).send('User does not belong to this organization');
+  }
   const organization = await organizations.get(req.params.id);
   if (!organization) {
     return res.status(404).send('Organization not found');
@@ -15,12 +27,23 @@ async function getOrganization(req, res) {
 
 async function createNewOrganization(req, res) {
   const { name } = req.body;
+  const { userId } = req;
   
   if (!name) {
     return res.status(400).send('Name is required');
   }
 
+  const user = await users.get(userId);
+
+  if(!user) {
+    return res.status(400).send('User not found');
+  }
+
   const created = await organizations.create(name);
+  const addedUser = await organizations.addUser(created.id, userId);
+  if (!addedUser) {
+    return res.status(500).send('Could not add user to organization');
+  }
   return res.send(created);
 }
 
@@ -30,6 +53,7 @@ async function getOrganizationUsers(req, res) {
 }
 
 async function addUserToOrganization(req, res) {
+  const { userId: ownerId } = req;
   const { userId } = req.body;
   const organizationId = req.params.id;
 
