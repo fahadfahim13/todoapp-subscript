@@ -10,12 +10,12 @@ async function getOrganization(req, res) {
   const { userId } = req;
 
   const user = await users.get(userId);
-  if (!user) {
+  if (user.type === 'ERROR' || !user.payload) {
     return res.status(400).send('User not found');
   }
 
   const isUserInOrganization = await organizations.checkUser(req.params.id, userId);
-  if (!isUserInOrganization) {
+  if (isUserInOrganization.type === 'ERROR' || !isUserInOrganization.payload) {
     return res.status(403).send('User does not belong to this organization');
   }
   const organization = await organizations.get(req.params.id);
@@ -35,7 +35,7 @@ async function createNewOrganization(req, res) {
 
   const user = await users.get(userId);
 
-  if(!user) {
+  if(user.type === 'ERROR' || !user.payload) {
     return res.status(400).send('User not found');
   }
 
@@ -48,11 +48,45 @@ async function createNewOrganization(req, res) {
 }
 
 async function getOrganizationUsers(req, res) {
-  const users = await organizations.getUsers(req.params.id);
-  return res.send(users);
+  const { userId } = req;
+
+  const user = await users.get(userId);
+  if (user.type === 'ERROR' || !user.payload) {
+    return res.status(400).send('User not found');
+  }
+
+  const isUserInOrganization = await organizations.checkUser(req.params.id, userId);
+  if (isUserInOrganization.type === 'ERROR' || !isUserInOrganization.payload) {
+    return res.status(403).send('User does not belong to this organization');
+  }
+
+  const foundUsers = await organizations.getUsers(req.params.id);
+  return res.send(foundUsers);
 }
 
 async function addUserToOrganization(req, res) {
+  const { userId: ownerId } = req;
+  const { userId } = req.body;
+  const organizationId = req.params.id;
+
+  console.log(ownerId, userId, organizationId);
+
+  if (!userId) {
+    return res.status(400).send('User ID is required');
+  }
+
+  const isUserInOrganization = await organizations.checkUser(req.params.id, ownerId);
+  console.log(isUserInOrganization);
+
+  if (isUserInOrganization.type === 'ERROR' || isUserInOrganization.payload === false) {
+    return res.status(403).send('User does not belong to this organization');
+  }
+
+  const addedUser = await organizations.addUser(organizationId, userId);
+  return res.send(addedUser);
+}
+
+async function removeUserFromOrganization(req, res) {
   const { userId: ownerId } = req;
   const { userId } = req.body;
   const organizationId = req.params.id;
@@ -61,16 +95,9 @@ async function addUserToOrganization(req, res) {
     return res.status(400).send('User ID is required');
   }
 
-  const addedUser = await organizations.addUser(organizationId, userId);
-  return res.send(addedUser);
-}
-
-async function removeUserFromOrganization(req, res) {
-  const { userId } = req.body;
-  const organizationId = req.params.id;
-
-  if (!userId) {
-    return res.status(400).send('User ID is required');
+  const isUserInOrganization = await organizations.checkUser(req.params.id, ownerId);
+  if (isUserInOrganization.type === 'ERROR' || !isUserInOrganization.payload) {
+    return res.status(403).send('User does not belong to this organization');
   }
 
   await organizations.removeUser(organizationId, userId);

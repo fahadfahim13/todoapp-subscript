@@ -12,10 +12,10 @@ app.get('/todos/:id', routes.getTodo);
 
 app.post('/todos', routes.postTodo);
 app.post('/todos/assign-user', routes.assignUser);
-app.patch('/todos/:id', routes.patchTodo);
+app.patch('/todos/:id', users.verifyAccessToken, routes.patchTodo);
 
 app.delete('/todos', routes.deleteAllTodos);
-app.delete('/todos/:id', routes.deleteTodo);
+app.delete('/todos/:id', users.verifyAccessToken, routes.deleteTodo);
 
 app.post('/login', users.loginUser);
 

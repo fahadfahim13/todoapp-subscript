@@ -37,8 +37,24 @@ async function allWithProjectId(projectId) {
 
 async function get(id) {
     try {
+        const results = await knex('todos').where({ id });
+        return {
+            type: 'SUCCESS',
+            payload: results[0]
+        };
+    } catch (error) {
+        console.error('Error fetching todo:', error);
+        return {
+            type: 'ERROR',
+            payload: error
+        };
+    }
+}
+
+async function getForUser(id, userId) {
+    try {
         const results = await knex('todos')
-            .where({ 'todos.id': id })
+            .where({ 'todos.id': id, 'todos.assigned_user_id': userId })
             .leftJoin('users', 'todos.assigned_user_id', 'users.id')
             .select('todos.*', 'users.name as assigned_user_name', 'users.email as assigned_user_email');
         return {
@@ -46,7 +62,7 @@ async function get(id) {
             payload: results[0]
         };
     } catch (error) {
-        console.error('Error fetching todo:', error);
+        console.error('Error fetching todo for user:', error);
         return {
             type: 'ERROR',
             payload: error
@@ -112,6 +128,24 @@ async function assignUser(id, userId) {
     }
 }
 
+async function checkUser(id, userId) {
+    try {
+        const results = await knex('todos')
+            .where({ id, assigned_user_id: userId })
+            .select('*');
+        return {
+            type: 'SUCCESS',
+            payload: results.length > 0 ? true : false
+        };
+    } catch (error) {
+        console.error('Error checking user:', error);
+        return {
+            type: 'ERROR',
+            payload: false
+        };
+    }
+}
+
 // delete is a reserved keyword
 async function del(id) {
     try {
@@ -153,5 +187,7 @@ module.exports = {
     create,
     update,
     delete: del,
-    clear
+    clear,
+    checkUser,
+    getForUser
 }

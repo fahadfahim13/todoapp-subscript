@@ -38,6 +38,14 @@ async function getTodo(req, res) {
   return res.send(result.payload);
 }
 
+async function getTodoForUser(req, res) {
+  const result = await todos.getForUser(req.params.id, req.params.userId);
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Error fetching todo for user');
+  }
+  return res.send(result.payload);
+}
+
 async function postTodo(req, res) {
   const result = await todos.create(req.body.title, req.body.order);
   if (result.type === 'ERROR') {
@@ -49,7 +57,7 @@ async function postTodo(req, res) {
 async function assignUser(req, res) {
   const {todoId, userId} = req.body;
 
-  const todo = await todos.get(req.params.id);
+  const todo = await todos.get(todoId);
   if (todo.type === 'ERROR') {
     return res.status(500).send('Error fetching todo');
   }
@@ -69,6 +77,15 @@ async function assignUser(req, res) {
 }
 
 async function patchTodo(req, res) {
+  const {userId} = req;
+  const checkUser = await todos.checkUser(req.params.id, userId);
+
+  if (checkUser.type === 'ERROR') {
+    return res.status(500).send('Error checking user');
+  }
+  if (!checkUser.payload) {
+    return res.status(403).send('User does not have access to this todo');
+  }
   const result = await todos.update(req.params.id, req.body);
   if (result.type === 'ERROR') {
     return res.status(500).send('Error updating todo');
@@ -85,6 +102,15 @@ async function deleteAllTodos(req, res) {
 }
 
 async function deleteTodo(req, res) {
+  const {userId} = req;
+  const checkUser = await todos.checkUser(req.params.id, userId);
+
+  if (checkUser.type === 'ERROR') {
+    return res.status(500).send('Error checking user');
+  }
+  if (!checkUser.payload) {
+    return res.status(403).send('User does not have access to this todo');
+  }
   const result = await todos.delete(req.params.id);
   if (result.type === 'ERROR') {
     return res.status(500).send('Error deleting todo');
@@ -111,7 +137,8 @@ const toExport = {
     postTodo: { method: postTodo, errorMessage: "Could not post todo" },
     patchTodo: { method: patchTodo, errorMessage: "Could not patch todo" },
     deleteAllTodos: { method: deleteAllTodos, errorMessage: "Could not delete all todos" },
-    deleteTodo: { method: deleteTodo, errorMessage: "Could not delete todo" }
+    deleteTodo: { method: deleteTodo, errorMessage: "Could not delete todo" },
+    getTodoForUser: { method: getTodoForUser, errorMessage: "Could not fetch todo for user" }
 }
 
 for (let route in toExport) {

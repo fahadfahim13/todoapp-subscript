@@ -83,7 +83,7 @@ const organizationsQueries = {
                 .select('*');
             return {
                 type: 'SUCCESS',
-                payload: true
+                payload: results.length > 0 ? true : false
             };
         } catch (error) {
             console.error('Error checking user in organization:', error);
