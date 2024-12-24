@@ -2,7 +2,8 @@ const knex = require("./connection.js");
 
 async function all() {
     try {
-        const results = await knex('todos');
+        const results = await knex('todos').select('*');
+        console.log({results});
         return {
             type: 'SUCCESS',
             payload: results
@@ -36,11 +37,13 @@ async function allWithProjectId(projectId) {
 }
 
 async function get(id) {
+
     try {
-        const results = await knex('todos').where({ id });
+        const results = await knex('todos').where({ id }).select('*');
+        console.log(results);
         return {
             type: 'SUCCESS',
-            payload: results[0]
+            payload: results.length > 0 ? results[0] : null
         };
     } catch (error) {
         console.error('Error fetching todo:', error);
@@ -59,7 +62,7 @@ async function getForUser(id, userId) {
             .select('todos.*', 'users.name as assigned_user_name', 'users.email as assigned_user_email');
         return {
             type: 'SUCCESS',
-            payload: results[0]
+            payload: results.length > 0 ? results[0] : null
         };
     } catch (error) {
         console.error('Error fetching todo for user:', error);
@@ -70,16 +73,9 @@ async function getForUser(id, userId) {
     }
 }
 
-async function create(title, order, projectId, assignedUserId = null) {
+async function create(title, order) {
     try {
-        const results = await knex('todos')
-            .insert({ 
-                title, 
-                order, 
-                project_id: projectId,
-                assigned_user_id: assignedUserId 
-            })
-            .returning('*');
+        const results = await knex('todos').insert({ title, order }).returning('*');
         return {
             type: 'SUCCESS',
             payload: results[0]

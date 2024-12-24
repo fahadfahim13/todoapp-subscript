@@ -3,6 +3,7 @@ const routes = require('./server-routes.js');
 const users = require('./routes/user-routes.js');
 const organizations = require('./routes/organization-routes.js');
 const projects = require('./routes/project-routes.js');
+const protectedRoutes = require('./routes/protected-routes.js');
 
 const port = process.env.PORT || 5000;
 
@@ -10,7 +11,7 @@ app.get('/todos', routes.getAllTodos);
 app.get('/todos/project/:id', routes.getAllTodosWithProject);
 app.get('/todos/:id', routes.getTodo);
 
-app.post('/todos', routes.postTodo);
+app.post('/todos', users.verifyAccessToken, routes.postTodo);
 app.post('/todos/assign-user', routes.assignUser);
 app.patch('/todos/:id', users.verifyAccessToken, routes.patchTodo);
 
@@ -37,6 +38,8 @@ app.get('/projects', users.verifyAccessToken, projects.getAllProjects);
 app.get('/projects/:id', users.verifyAccessToken, projects.getProject);
 app.post('/projects', users.verifyAccessToken, projects.createNewProject);
 app.get('/projects/:id/todos', users.verifyAccessToken, projects.getProjectTodos);
+
+app.use('/protected-route', protectedRoutes);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => console.log(`Listening on port ${port}`));

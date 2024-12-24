@@ -38,10 +38,20 @@ function del(url) {
 }
 
 
+function deleteWithBody (url, body) {
+  const httpRequest = request(app).delete(url);
+  httpRequest.send(body);
+  httpRequest.set('Accept', 'application/json')
+  httpRequest.set('Origin', 'http://localhost:5000')
+  return httpRequest;
+}
+
+
 module.exports = {
   post,
   get,
   patch,
   del,
-  delete: del
+  delete: del,
+  deleteWithBody
 };

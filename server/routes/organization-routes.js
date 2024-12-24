@@ -16,10 +16,10 @@ async function getOrganization(req, res) {
 
   const isUserInOrganization = await organizations.checkUser(req.params.id, userId);
   if (isUserInOrganization.type === 'ERROR' || !isUserInOrganization.payload) {
-    return res.status(403).send('User does not belong to this organization');
+    return res.status(404).send('User does not belong to this organization');
   }
   const organization = await organizations.get(req.params.id);
-  if (!organization) {
+  if (organization.type === 'ERROR' || !organization.payload) {
     return res.status(404).send('Organization not found');
   }
   return res.send(organization);
@@ -40,7 +40,11 @@ async function createNewOrganization(req, res) {
   }
 
   const created = await organizations.create(name);
-  const addedUser = await organizations.addUser(created.id, userId);
+  if (created.type === 'ERROR') {
+    return res.status(500).send('Could not create organization');
+  }
+  console.log(created);
+  const addedUser = await organizations.addUser(created.payload.id, userId);
   if (!addedUser) {
     return res.status(500).send('Could not add user to organization');
   }
@@ -100,7 +104,10 @@ async function removeUserFromOrganization(req, res) {
     return res.status(403).send('User does not belong to this organization');
   }
 
-  await organizations.removeUser(organizationId, userId);
+  const result = await organizations.removeUser(organizationId, userId);
+  if (result.type === 'ERROR') {
+    return res.status(500).send('Could not remove user from organization');
+  }
   return res.send({ message: 'User removed from organization' });
 }
 

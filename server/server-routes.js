@@ -16,10 +16,11 @@ function createToDo(req, data) {
 
 async function getAllTodos(req, res) {
   const result = await todos.all();
+  console.log(result)
   if (result.type === 'ERROR') {
     return res.status(500).send('Error fetching all todos');
   }
-  return res.send(result.payload.map(_.curry(createToDo)(req)));
+  return res.send(result.payload);
 }
 
 async function getAllTodosWithProject(req, res) {
@@ -35,6 +36,9 @@ async function getTodo(req, res) {
   if (result.type === 'ERROR') {
     return res.status(500).send('Error fetching todo');
   }
+  if (!result.payload) {
+    return res.status(404).send('Todo not found');
+  }
   return res.send(result.payload);
 }
 
@@ -47,11 +51,20 @@ async function getTodoForUser(req, res) {
 }
 
 async function postTodo(req, res) {
+  const {userId} = req;
+
+  if (!req.body.title || req.body.title === '') {
+    return res.status(400).send('Title is required');
+  }
+
   const result = await todos.create(req.body.title, req.body.order);
   if (result.type === 'ERROR') {
     return res.status(500).send('Error creating todo');
   }
-  return res.send(createToDo(req, result.payload));
+
+  const assignedUser = await todos.assignUser(result.payload.id, userId);
+  console.log({assignedUser});
+  return res.send(result.payload);
 }
 
 async function assignUser(req, res) {
